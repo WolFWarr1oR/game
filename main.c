@@ -1,5 +1,9 @@
 #include <raylib.h>
 
+#if defined(PLATFORM_WEB)
+    #include <emscripten/emscripten.h>
+#endif
+
 #define PARTCILE_RADIUS 35
 #define PARTCILE_COLOR BLUE
 #define MAX_PARTICLES 25
@@ -110,17 +114,32 @@ void gameloop(Gamedata *gamedata)
     draw_particles(gamedata);
 }
 
+Gamedata gamedata = {0};
+
+
+void UpdateGameFrame(void)
+{
+    BeginDrawing();
+    ClearBackground(WHITE);
+    gameloop(&gamedata);
+    EndDrawing();
+}
+
 int main(void)
 {
-    Gamedata gamedata = {0};
     gamedata.peak_fps = 0;
+    #if defined(PLATFORM_WEB)
+    InitWindow(1280, 700, "OwOlfwarrior");
+    #else
     InitWindow(800, 600, "OwOlfwarrior");
+    #endif
+    #if defined(PLATFORM_WEB)
+    emscripten_set_main_loop(UpdateGameFrame, 0, 1);
+    #else
     while (!WindowShouldClose()) {
-	BeginDrawing();
-	ClearBackground(WHITE);
-	gameloop(&gamedata);
-	EndDrawing();
+	UpdateGameFrame();
     }
+    #endif
     CloseWindow();
     TraceLog(LOG_INFO, "Goodbye! uwu");
     return 0;
