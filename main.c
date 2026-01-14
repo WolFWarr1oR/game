@@ -1,5 +1,5 @@
 #include <raylib.h>
-
+#include <limits.h>
 #if defined(PLATFORM_WEB)
     #include <emscripten/emscripten.h>
 #endif
@@ -114,32 +114,30 @@ void gameloop(Gamedata *gamedata)
     draw_particles(gamedata);
 }
 
-Gamedata gamedata = {0};
 
-
-void UpdateGameFrame(void)
+void UpdateGameFrame(void *arg)
 {
+    Gamedata *gamedata = (Gamedata*)arg;
     BeginDrawing();
     ClearBackground(WHITE);
-    gameloop(&gamedata);
+    gameloop(gamedata);
     EndDrawing();
 }
 
 int main(void)
 {
+    Gamedata gamedata = {0};
     gamedata.peak_fps = 0;
-    #if defined(PLATFORM_WEB)
+
     InitWindow(1280, 700, "OwOlfwarrior");
-    #else
-    InitWindow(800, 600, "OwOlfwarrior");
-    #endif
-    #if defined(PLATFORM_WEB)
-    emscripten_set_main_loop(UpdateGameFrame, 0, 1);
-    #else
+
+#if defined(PLATFORM_WEB)
+    emscripten_set_main_loop_arg(UpdateGameFrame, &gamedata, INT_MAX, 1);
+#else
     while (!WindowShouldClose()) {
-	UpdateGameFrame();
+	UpdateGameFrame(&gamedata);
     }
-    #endif
+#endif
     CloseWindow();
     TraceLog(LOG_INFO, "Goodbye! uwu");
     return 0;
